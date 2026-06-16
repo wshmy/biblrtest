@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>중고등부 성경경시대회</title>
+    <style>
+        :root {
+            --primary: #4f46e5;
+            --primary-hover: #4338ca;
+            --bg: #f3f4f6;
+            --card: #ffffff;
+            --text: #1f2937;
+            --danger: #dc2626;
+            --danger-hover: #b91c1c;
+            --danger-bg: #fef2f2;
+            --danger-border: #fee2e2;
+        }
+        body { font-family: 'Malgun Gothic', sans-serif; background-color: var(--bg); color: var(--text); margin: 0; padding: 20px; display: flex; justify-content: center; }
+        .container { width: 100%; max-width: 700px; }
+        .card { background: var(--card); padding: 30px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); margin-bottom: 20px; }
+        h1, h2 { text-align: center; color: var(--primary); }
+        .input-group { margin-bottom: 15px; }
+        .input-group label { display: block; margin-bottom: 5px; font-weight: bold; }
+        .input-group input { width: 100%; padding: 10px; border: 1px solid #d1d5db; border-radius: 6px; box-sizing: border-box; }
+       
+        /* 주의사항 박스 스타일 */
+        .caution-box { background-color: var(--danger-bg); border: 1px solid var(--danger-border); padding: 15px; border-radius: 8px; margin: 20px 0; }
+        .caution-title { color: var(--danger); font-weight: bold; margin-bottom: 8px; display: flex; align-items: center; gap: 5px; }
+        .caution-list { margin: 0; padding-left: 20px; color: #991b1b; font-size: 14px; line-height: 1.6; }
+       
+        .btn { width: 100%; padding: 12px; background-color: var(--primary); color: white; border: none; border-radius: 6px; font-size: 16px; cursor: pointer; font-weight: bold; }
+        .btn:hover { background-color: var(--primary-hover); }
+       
+        /* 초기화 버튼 스타일 */
+        .btn-danger { background-color: var(--danger); }
+        .btn-danger:hover { background-color: var(--danger-hover); }
+
+        .question-card { border-bottom: 1px solid #e5e7eb; padding: 20px 0; }
+        .question-title { font-size: 18px; font-weight: bold; margin-bottom: 12px; }
+        .options label { display: block; background: #f9fafb; padding: 10px; margin-bottom: 8px; border: 1px solid #e5e7eb; border-radius: 6px; cursor: pointer; }
+        .options input { margin-right: 10px; }
+        .short-answer { width: 100%; padding: 10px; border: 1px solid #d1d5db; border-radius: 6px; }
+        .hidden { display: none; }
+        .nav-tabs { display: flex; justify-content: space-around; margin-bottom: 20px; }
+        .tab-btn { background: none; border: none; padding: 10px; font-size: 16px; cursor: pointer; color: #6b7280; }
+        .tab-btn.active { color: var(--primary); font-weight: bold; border-bottom: 2px solid var(--primary); }
+       
+        /* 관리자 상단 정렬 */
+        .admin-ctrl-box { display: flex; justify-content: space-between; margin-bottom: 15px; gap: 10px; }
+
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+        th, td { border: 1px solid #e5e7eb; padding: 10px; text-align: center; }
+        th { background-color: #f9fafb; }
+        .loading { text-align: center; font-size: 18px; color: #6b7280; padding: 20px; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <!-- 네비게이션 탭 -->
+    <div class="nav-tabs">
+        <button class="tab-btn active" onclick="switchTab('exam-view')">시험 응시</button>
+        <button class="tab-btn" onclick="switchTab('admin-view')">관리자 페이지</button>
+    </div>
+
+    <!-- [1] 인적사항 입력 화면 -->
+    <div id="intro-screen" class="card">
+        <h1>🏆 중고등부 성경경시대회</h1>
+        <p style="text-align:center; color:#6b7280;">응시자의 정보를 정확하게 입력해 주세요.</p>
+        <hr style="border:0; border-top:1px solid #e5e7eb; margin:20px 0;">
+       
+        <div class="input-group">
+            <label>지방명</label>
+            <input type="text" id="user-region" placeholder="예: 경기지방" required>
+        </div>
+        <div class="input-group">
+            <label>교회명</label>
+            <input type="text" id="user-church" placeholder="예: 동두천교회" required>
+        </div>
+        <div class="input-group">
+            <label>이름</label>
+            <input type="text" id="user-name" placeholder="예: 홍길동" required>
+        </div>
+
+        <!-- 주의사항 안내 영역 -->
+        <div class="caution-box">
+            <div class="caution-title">⚠️ 주의사항</div>
+            <ul class="caution-list">
+                <li>부정행위 발견 시 해당 시험은 <strong>무효 처리</strong>됩니다.</li>
+                <li>본 시험의 제한시간은 <strong>40분</strong>입니다.</li>
+            </ul>
+        </div>
+
+        <button class="btn" onclick="startExam()" style="margin-top:10px;">시험 시작하기</button>
+    </div>
+
+    <!-- [2] 시험 문제 화면 -->
+    <div id="exam-screen" class="card hidden">
+        <h2 id="exam-timer">📝 문제를 신중하게 풀어보세요 (총 70문항)</h2>
+        <form id="quiz-form">
+            <div id="quiz-container"></div>
+            <button type="button" class="btn" onclick="submitExam()" style="margin-top:20px;">시험지 제출하기</button>
+        </form>
+    </div>
+
+    <!-- [3] 시험 종료/결과 화면 -->
+    <div id="result-screen" class="card hidden">
+        <h2>🎉 시험이 완료되었습니다!</h2>
+        <div style="text-align: center; margin: 30px 0;">
+            <p style="font-size: 20px;">수고하셨습니다.</p>
+            <p style="font-size: 32px; font-weight: bold; color: var(--primary);" id="user-score">0점 / 100점</p>
+        </div>
+        <p style="text-align:center; color:#6b7280;">점수는 실시간으로 감독관에게 전달되었습니다.</p>
+    </div>
+
+    <!-- [4] 관리자/실시간 순위 화면 -->
+    <div id="admin-screen" class="card hidden">
+        <h2>📊 실시간 순위 현황 (관리자)</h2>
+       
+        <!-- 컨트롤 단추 상단 배치 -->
+        <div class="admin-ctrl-box">
+            <button class="btn btn-danger" onclick="clearAdminData()" style="width:auto; padding:6px 12px; font-size:14px;">⚠️ 데이터 전체 초기화</button>
+            <button class="btn" onclick="loadAdminData()" style="width:auto; padding:6px 12px; font-size:14px;">🔄 순위 새로고침</button>
+        </div>
+
+        <div id="admin-loading" class="loading hidden">순위 데이터를 불러오는 중...</div>
+        <table>
+            <thead>
+                <tr>
+                    <th>순위</th>
+                    <th>지방명</th>
+                    <th>교회명</th>
+                    <th>이름</th>
+                    <th>점수</th>
+                </tr>
+            </thead>
+            <tbody id="ranking-table-body">
+                <tr>
+                    <td colspan="5" style="color:#6b7280;">데이터가 없습니다.</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+    // ⚠️여기에 본인의 구글 웹앱 URL을 정확하게 입력하세요.
+    const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbx0XF5IqDZTpmhUnOq0ed7Wd5bXCpGcMsxqbCl6umDdoLxrCmr-KWk00IcVOrX4JqL0Mg/exec";
+
+    // 🔒 관리자 페이지 비밀번호 설정 (원하는 비밀번호로 변경 가능)
+    const ADMIN_PASSWORD = "1234";
+
+    // 1번부터 70번까지 성경경시대회 데이터베이스
+    const quizData = [
+        // [1-20] 객관식 문항
+        { id: 1, type: "choice", question: "1. 하나님께서 갈대아 우르에 살던 아브라함에게 나타나 명령하신 최초의 약속의 땅은 어디입니까?", options: ["애굽", "가나안", "바벨론", "고센"], answer: "가나안" },
+        { id: 2, type: "choice", question: "2. 다윗과 깊은 신앙적 우정을 나누었으며, 사울 왕의 아들이었던 인물은 누구입니까?", options: ["요나단", "솔로몬", "압살롬", "암논"], answer: "요나단" },
+        { id: 3, type: "choice", question: "3. 십계명 중 인간 관계에 대한 첫 번째 계명이자, 제 5계명은 무엇입니까?", options: ["살인하지 말라", "네 부모를 공경하라", "도둑질하지 말라", "안식일을 기억하여 거룩하게 지키라"], answer: "네 부모를 공경하라" },
+        { id: 4, type: "choice", question: "4. 페르시아(바사)의 왕비가 되어 '죽으면 죽으리이다'라는 각오로 유다 민족을 구한 인물은 누구입니까?", options: ["룻", "한나", "라합", "에스더"], answer: "에스더" },
+        { id: 5, type: "choice", question: "5. 하나님을 피해 다시스로 도망치다가 큰 물고기 뱃속에서 3일 동안 회개 기도를 드린 선지자는 누구입니까?", options: ["요나", "엘리야", "이사야", "예레미야"], answer: "요나" },
+        { id: 6, type: "choice", question: "6. 바벨론 포로 생활 중에도 뜻을 정하여 왕의 음식으로 자신을 더럽히지 않고, 사자굴 속에서도 보호받은 선지자는 누구입니까?", options: ["에스겔", "다니엘", "호세아", "아모스"], answer: "다니엘" },
+        { id: 7, type: "choice", question: "7. 예수님의 12제자 중 한 명으로, 예수님을 은 30에 대제사장들에게 판 인물은 누구입니까?", options: ["베드로", "요한", "가럟 유다", "도마"], answer: "가럟 유다" },
+        { id: 8, type: "choice", question: "8. 성경의 핵심 구절인 '하나님이 세상을 이처럼 사랑하사 독생자를 주셨으니...' 성경 구절은 어디에 나옵니까?", options: ["마태복음 3장 16절", "마가복음 3장 16절", "누가복음 3장 16절", "요한복음 3장 16절"], answer: "요한복음 3장 16절" },
+        { id: 9, type: "choice", question: "9. 바울이 로마 감옥에 갇혀 있을 때 에베소, 빌립보, 골로새, 빌레몬에게 보낸 편지들을 묶어 무엇이라 부릅니까?", options: ["목회서신", "옥중서신", "일반서신", "역사서신"], answer: "옥중서신" },
+        { id: 10, type: "choice", question: "10. '믿음, 소망, 사랑, 이 세 가지는 항상 있을 것인데 그 중의 제일은 사랑이라'는 말씀이 기록된 성경은 어디입니까?", options: ["로마서 13장", "고린도전서 13장", "갈라디아서 5장", "히브리서 11장"], answer: "고린도전서 13장" },
+        { id: 11, type: "choice", question: "11. 이스라엘 백성이 출애굽 한 후 광야에서 40년 동안 매일 아침 하나님께 공급받았던 하늘의 양식은 무엇입니까?", options: ["만나", "메추라기", "무교병", "떡과 포도주"], answer: "만나" },
+        { id: 12, type: "choice", question: "12. 이삭의 아내이자, 쌍둥이 형제인 에서와 야곱을 낳은 어머니의 이름은 무엇입니까?", options: ["사라", "리브가", "라헬", "레아"], answer: "리브가" },
+        { id: 13, type: "choice", question: "13. 바벨론 포로기 이후 예루살렘으로 돌아와 무너진 예루살렘 성벽 성을 총독으로서 주도하여 재건한 인물은 누구입니까?", options: ["에스라", "학개", "느헤미야", "스룹바벨"], answer: "느헤미야" },
+        { id: 14, type: "choice", question: "14. 예수님께서 산에 올라 제자들에게 선포하신 마태복음 5~7장의 가르침을 무엇이라고 합니까?", options: ["산상수훈(팔복)", "다락방 강화", "평지 설교", "감람산 예언"], answer: "산상수훈(팔복)" },
+        { id: 15, type: "choice", question: "15. 사도 요한이 유배되어 성령의 감동으로 요한계시록을 기록한 섬의 이름은 무엇입니까?", options: ["구브로섬", "멜리데섬", "크레타섬", "밧모섬"], answer: "밧모섬" },
+        { id: 16, type: "choice", question: "16. 성령의 9가지 열매(사랑, 희락, 화평, 오래 참음 등)가 기록되어 있는 성경은 어디입니까?", options: ["로마서 5장", "에베소서 5장", "갈라디아서 5장", "빌립보서 4장"], answer: "갈라디아서 5장" },
+        { id: 17, type: "choice", question: "17. 예수님이 자라나신 동네로, 당시 사람들이 '무슨 선한 것이 날 수 있느냐'라며 무시했던 동네는 어디입니까?", options: ["예루살렘", "여리고", "나사렛", "가버나움"], answer: "나사렛" },
+        { id: 18, type: "choice", question: "18. 구약 성경 전체의 장수가 총 몇 장입니까?", options: ["929장", "260장", "1189장", "66장"], answer: "929장" },
+        { id: 19, type: "choice", question: "19. 예수님이 무덤에 갇히신 지 며칠 만에 사망 권세를 깨뜨리고 부활하셨습니까?", options: ["1일", "3일", "7일", "40일"], answer: "3일" },
+        { id: 20, type: "choice", question: "20. 신약 성경의 서신서 중 '행함이 없는 믿음은 그 자체가 죽은 것'이라며 행함을 강조한 성경은 무엇입니까?", options: ["로마서", "야고보서", "히브리서", "베드로전서"], answer: "야고보서" },
+
+        // [21-35] O, X 문항
+        { id: 21, type: "ox", question: "21. 성경은 총 66권으로 구약 39권, 신약 27권으로 구성되어 있다.", options: ["O", "X"], answer: "O" },
+        { id: 22, type: "ox", question: "22. 출애굽의 위대한 지도자 모세는 약속의 땅 가나안에 직접 들어갔다.", options: ["O", "X"], answer: "X" },
+        { id: 23, type: "ox", question: "23. 구약 성경 중 이사야서는 신약 성경 전체 권수와 동일한 총 66장으로 이루어져 있다.", options: ["O", "X"], answer: "O" },
+        { id: 24, type: "ox", question: "24. 시편 23편의 첫 구절은 '여호와는 나의 목자시니 내게 부족함이 없으리로다'로 시작한다.", options: ["O", "X"], answer: "O" },
+        { id: 25, type: "ox", question: "25. 예수님이 세상에 와서 행하신 최초의 기적은 오병이어 기적이다.", options: ["O", "X"], answer: "X" },
+        { id: 26, type: "ox", question: "26. 잃어버린 양의 비유, 드라크마 비유, 탕자의 비유가 모두 모여있는 성경은 누가복음 15장이다.", options: ["O", "X"], answer: "O" },
+        { id: 27, type: "ox", question: "27. 예수님의 수제자 베드로는 예수님이 잡히시던 밤에 예수님을 총 5번 부인하였다.", options: ["O", "X"], answer: "X" },
+        { id: 28, type: "ox", question: "28. 성경에서 인류 역사상 가장 오래 산 인물은 969세를 살았던 '므두셀라'이다.", options: ["O", "X"], answer: "O" },
+        { id: 29, type: "ox", question: "29. 홍수 심판 때 노아의 방주에 구원받아 탑승한 노아의 가족은 총 12명이다.", options: ["O", "X"], answer: "X" },
+        { id: 30, type: "ox", question: "30. 성경에서 위대한 믿음의 영웅들을 나열하여 '믿음장'이라고 부르는 곳은 히브리서 11장이다.", options: ["O", "X"], answer: "O" },
+        { id: 31, type: "ox", question: "31. 초대 교회 최초의 집사이자, 복음을 전하다가 돌에 맞아 순교한 첫 번째 순교자는 베드로이다.", options: ["O", "X"], answer: "X" },
+        { id: 32, type: "ox", question: "32. 사사 삼손은 블레셋 여인 들릴라의 유혹에 넘어가 머리카락이 잘린 후 힘을 잃었다.", options: ["O", "X"], answer: "O" },
+        { id: 33, type: "ox", question: "33. 바울은 다메섹으로 가는 길에서 부활하신 예수님의 음성을 듣고 회심하여 이방인의 사도가 되었다.", options: ["O", "X"], answer: "O" },
+        { id: 34, type: "ox", question: "34. 예수님이 십자가에 못 박히실 때 좌우에 함께 못 박혔던 두 강도는 모두 끝까지 예수님을 비웃고 저주했다.", options: ["O", "X"], answer: "X" },
+        { id: 35, type: "ox", question: "35. 솔로몬 왕은 이스라엘 영토의 통일 왕국을 이룬 이스라엘의 첫 번째(초대) 왕이다.", options: ["O", "X"], answer: "X" },
+
+        // [36-50] 주관식 문항
+        { id: 36, type: "short", question: "36. 구약성경의 가장 첫 번째 책은 창세기입니다. 그렇다면 구약성경의 맨 마지막 책은 무엇입니까?", answer: "말라기" },
+        { id: 37, type: "short", question: "37. 야곱이 줴복 나루터에서 하나님의 천사와 밤새 씨름한 후 얻게 된 이름으로, 오늘날 한 국가의 이름이 된 이 이름은 무엇입니까?", answer: "이스라엘" },
+        { id: 38, type: "short", question: "38. 목동 출신으로 골리앗을 물맷돌로 쓰러뜨리고 이스라엘의 2대 왕이 된 성군은 누구입니까?", answer: "다윗" },
+        { id: 39, type: "short", question: "39. 갈멜산에서 바알과 아세라 선지자 850명과 대결하여 하늘에서 불이 내려오게 한 구약의 위대한 선지자는 누구입니까?", answer: "엘리야" },
+        { id: 40, type: "short", question: "40. 인류 최초의 사람인 아담과 하와의 자녀 중, 형의 시기심으로 인해 동생을 돌로 쳐 죽인 인류 최초의 살인자 형의 이름은 무엇입니까?", answer: "카인" },
+        { id: 41, type: "short", question: "41. 여호수아가 이끄는 이스라엘 군대가 가나안 땅에 들어가서 하나님의 명령에 따라 성 주위를 돌았을 때 소리를 지르자 무너져 내린 가나안의 첫 번째 성 이름은 무엇입니까?", answer: "여리고" },
+        { id: 42, type: "short", question: "42. 하나님께서 온 세상을 믿음으로 구원하시기 위해 택하셔서 '믿음의 조상'이라는 별명을 얻게 된 인물은 누구입니까?", answer: "아브라함" },
+        { id: 43, type: "short", question: "43. 위대한 성군 다윗 왕의 육신의 아버지는 누구입니까?", answer: "이새" },
+        { id: 44, type: "short", question: "44. 구약 성경 시편 중에서 가장 많은 장수를 차지하며, 성경 전체에서 가장 긴 장은 몇 편입니까? (숫자만 입력)", answer: "119" },
+        { id: 45, type: "short", question: "45. 구약 시대에 하나님께 죄를 용서받기 위해 짐승을 잡아 제사 드리던 곳으로, 솔로몬 왕이 예루살렘에 최초로 건축한 건물을 무엇이라고 합니까?", answer: "성전" },
+        { id: 46, type: "short", question: "46. 예수님께서 인류의 죄를 대속하기 위해 피 흘려 돌아가신 언덕의 이름은 무엇입니까?", answer: "골고다" },
+        { id: 47, type: "short", question: "47. 예수님이 승천하신 후, 마가의 다락방에 모여 기도하던 성도들에게 오순절 날 강림하셔서 초대 교회를 탄생하게 하신 삼위일체 하나님은 누구입니까?", answer: "성령" },
+        { id: 48, type: "short", question: "48. 사도 바울이 영적 아들로 삼았으며, 에베소 교회의 젊은 목회자로서 바울에게 목회적 권면의 편지를 받았던 인물은 누구입니까?", answer: "디모데" },
+        { id: 49, type: "short", question: "49. 성령의 9가지 열매 중 가장 첫 번째로 기록되어 있으며, 기독교 신앙의 가장 핵심이 되는 가치는 무엇입니까?", answer: "사랑" },
+        { id: 50, type: "short", question: "50. 성경 전체의 맨 마지막 책인 요한계시록 22장 맨 마지막 절의 최종 단어는 무엇입니까?", answer: "아멘" },
+
+        // [51-60] 객관식 문항 추가
+        { id: 51, type: "choice", question: "51. 야곱의 12명의 아들 중, 형들의 시기로 애굽에 종으로 팔려갔으나 후에 애굽의 총리가 된 인물은 누구입니까?", options: ["루벤", "유다", "요셉", "베냐민"], answer: "요셉" },
+        { id: 52, type: "choice", question: "52. 모세가 죽은 후, 그의 뒤를 이어 이스라엘 백성들을 이끌고 가나안 땅으로 들어간 새로운 지도자는 누구입니까?", options: ["여호수아", "갈렙", "기드온", "아론"], answer: "여호수아" },
+        { id: 53, type: "choice", question: "53. 신약성경 마태복음과 마가복음, 누가복음은 서로 관점이 비슷하여 공관복음이라고 부릅니다. 그렇다면 영적인 깊이와 신성을 강조하여 따로 분류하는 복음서는 무엇입니까?", options: ["사도행전", "로마서", "요한복음", "히브리서"], answer: "요한복음" },
+        { id: 54, type: "choice", question: "54. 예수님의 어머니 마리아에게 나타나 성령으로 아기를 잉태할 것이라는 기쁜 소식을 전해준 천사의 이름은 무엇입니까?", options: ["미가엘", "가브리엘", "라파엘", "구브로"], answer: "가브리엘" },
+        { id: 55, type: "choice", question: "55. 다윗의 아들로, 아버지의 뒤를 이어 왕이 되었으며 하나님께 지혜를 구해 성전을 건축한 이스라엘의 3대 왕은 누구입니까?", options: ["솔로몬", "르호보암", "사울", "히스기야"], answer: "솔로몬" },
+        { id: 56, type: "choice", question: "56. 대홍수 심판 때, 노아의 방주가 홍수가 그치고 물이 빠지면서 마침내 머무르게 된 산의 이름은 무엇입니까?", options: ["시내산", "호렙산", "아라랏산", "갈멜산"], answer: "아라랏산" },
+        { id: 57, type: "choice", question: "57. 예수님께서 잡히시던 전날 밤, 땀방울이 핏방울이 되도록 간절히 통곡하며 기도하셨던 동산의 이름은 무엇입니까?", options: ["감람산", "겟세마네 동산", "에덴 동산", "골고다 언덕"], answer: "겟세마네 동산" },
+        { id: 58, type: "choice", question: "58. 하나님께서 모세를 통해 주신 십계명 중, 제 1계명의 내용은 무엇입니까?", options: ["너는 나 외에는 다른 신들을 네게 두지 말라", "우상을 만들지 말라", "네 부모를 공경하라", "안식일을 거룩하게 지키라"], answer: "너는 나 외에는 다른 신들을 네게 두지 말라" },
+        { id: 59, type: "choice", question: "59. 바울의 선교 동역자이자 의사였으며, 복음서 중 하나인 누가복음과 초대교회 역사서인 '이 책'을 기록한 사람은 누구입니까?", options: ["사도행전", "로마서", "갈라디아서", "에베소서"], answer: "사도행전" },
+        { id: 60, type: "choice", question: "60. 성경에서 '예수님이 사랑하시는 제자'로 표현되며, 요한복음, 요한 1·2·3서, 요한계시록을 기록한 제자는 누구입니까?", options: ["베드로", "안드레", "야고보", "요한"], answer: "요한" },
+
+        // [61-65] O, X 문항 추가
+        { id: 61, type: "ox", question: "61. 이삭과 리브가 사이에서 태어난 쌍둥이 형제 중, 형의 이름은 '야곱'이고 동생의 이름은 '에서'이다.", options: ["O", "X"], answer: "X" },
+        { id: 62, type: "ox", question: "62. 아브라함이 하나님의 말씀에 순종하여 독자 이삭을 번제로 바치려고 했던 산은 '모리아 산'이다.", options: ["O", "X"], answer: "O" },
+        { id: 63, type: "ox", question: "63. 사도 바울이 다메섹 도상에서 예수님을 만나 회심하기 전, 유대인으로서 가졌던 원래 이름은 '사울'이었다.", options: ["O", "X"], answer: "O" },
+        { id: 64, type: "ox", question: "64. 신약성경 전체의 장수는 구약성경 전체의 장수보다 훨씬 많다.", options: ["O", "X"], answer: "X" },
+        { id: 65, type: "ox", question: "65. 예수님은 공생애를 시작하시기 전, 광야에서 외치는 자의 소리였던 '세례 요한'에게 요단강에서 세례를 받으셨다.", options: ["O", "X"], answer: "O" },
+
+        // [66-70] 주관식 문항 추가
+        { id: 66, type: "short", question: "66. 이스라엘 백성들이 출애굽할 때, 앞을 가로막고 있던 바다가 모세가 지팡이를 들자 밤새 동풍이 불어 갈라졌습니다. 이 바다의 이름은 무엇입니까?", answer: "홍해" },
+        { id: 67, type: "short", question: "67. 예수님의 제자 중 한 명으로, 예수님의 부활 소식을 믿지 못하고 '내가 그의 손의 못 자국을 보며 내 손가락을 그 옆구리에 넣어 보지 않고는 믿지 아니하겠노라'라고 의심했던 제자는 누구입니까?", answer: "도마" },
+        { id: 68, type: "short", question: "68. 구약성경 인물 중 죽음을 보지 않고 하나님이 하늘로 데려가신 인물이며, 성경에서 가장 오래 산 인물인 므두셀라의 아버지는 누구입니까?", answer: "에녹" },
+        { id: 69, type: "short", question: "69. 베다니 마을에 살던 마르다와 마리아의 오라버니로, 병들어 죽은 지 나흘이나 되어 무덤에서 썩은 냄새가 나던 중 예수님께서 명하시어 다시 살아난 사람의 이름은 무엇입니까?", answer: "나사로" },
+        { id: 70, type: "short", question: "70. 성경에서 말하는 가장 큰 계명은 '네 마음을 다하고 목숨을 다하고 뜻을 다하여 주 너의 하나님을 사랑하라'입니다. 그리고 둘째 계명은 '네 이웃을 네 자신 같이 ○○하라'입니다. 빈칸에 들어갈 알맞은 단어는 무엇입니까?", answer: "사랑" }
+    ];
+
+    let userInfo = { region: "", church: "", name: "" };
+
+    // [수정] 비밀번호 잠금 기능이 내장된 탭 전환 기능
+    function switchTab(view) {
+        if(view === 'admin-view') {
+            const inputPw = prompt("🔒 관리자 비밀번호를 입력해 주세요:");
+            if(inputPw !== ADMIN_PASSWORD) {
+                alert("❌ 비밀번호가 올바르지 않습니다.");
+                return;
+            }
+           
+            // 비밀번호 성공 시 전환
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.querySelectorAll('.tab-btn')[1].classList.add('active');
+           
+            document.getElementById('intro-screen').classList.add('hidden');
+            document.getElementById('exam-screen').classList.add('hidden');
+            document.getElementById('result-screen').classList.add('hidden');
+            document.getElementById('admin-screen').classList.remove('hidden');
+            loadAdminData();
+        } else {
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.querySelectorAll('.tab-btn')[0].classList.add('active');
+           
+            document.getElementById('intro-screen').classList.remove('hidden');
+            document.getElementById('exam-screen').classList.add('hidden');
+            document.getElementById('result-screen').classList.add('hidden');
+            document.getElementById('admin-screen').classList.add('hidden');
+        }
+    }
+
+    function startExam() {
+        userInfo.region = document.getElementById('user-region').value.trim();
+        userInfo.church = document.getElementById('user-church').value.trim();
+        userInfo.name = document.getElementById('user-name').value.trim();
+
+        if(!userInfo.region || !userInfo.church || !userInfo.name) {
+            alert("지방명, 교회명, 이름을 모두 입력해야 시험을 시작할 수 있습니다.");
+            return;
+        }
+
+        document.getElementById('intro-screen').classList.add('hidden');
+        document.getElementById('exam-screen').classList.remove('hidden');
+        renderQuiz();
+    }
+
+    function renderQuiz() {
+        const container = document.getElementById('quiz-container');
+        container.innerHTML = "";
+
+        quizData.forEach((q, index) => {
+            const qCard = document.createElement('div');
+            qCard.className = "question-card";
+           
+            const title = document.createElement('div');
+            title.className = "question-title";
+            title.innerText = q.question;
+            qCard.appendChild(title);
+
+            if(q.type === 'choice' || q.type === 'ox') {
+                const optionsDiv = document.createElement('div');
+                optionsDiv.className = "options";
+                q.options.forEach(opt => {
+                    const label = document.createElement('label');
+                    label.innerHTML = `<input type="radio" name="q-${q.id}" value="${opt}" required> ${opt}`;
+                    optionsDiv.appendChild(label);
+                });
+                qCard.appendChild(optionsDiv);
+            } else if(q.type === 'short') {
+                const input = document.createElement('input');
+                input.type = "text";
+                input.className = "short-answer";
+                input.name = `q-${q.id}`;
+                input.placeholder = "정답을 입력하세요 (공백 주의)";
+                input.required = true;
+                qCard.appendChild(input);
+            }
+            container.appendChild(qCard);
+        });
+    }
+
+    function submitExam() {
+        if(!confirm("정말로 시험지를 제출하시겠습니까? 제출 후엔 수정할 수 없습니다.")) return;
+
+        const form = document.getElementById('quiz-form');
+        const formData = new FormData(form);
+        let correctCount = 0;
+
+        quizData.forEach(q => {
+            const userAnswer = formData.get(`q-${q.id}`);
+            if(userAnswer && userAnswer.trim() === q.answer.trim()) {
+                correctCount++;
+            }
+        });
+
+        const totalScore = Math.round((correctCount / quizData.length) * 100);
+
+        document.getElementById('exam-screen').classList.add('hidden');
+        document.getElementById('result-screen').classList.remove('hidden');
+        document.getElementById('user-score').innerText = `${totalScore}점`;
+
+        const payload = {
+            region: userInfo.region,
+            church: userInfo.church,
+            name: userInfo.name,
+            score: totalScore
+        };
+
+        fetch(GAS_WEB_APP_URL, {
+            method: "POST",
+            body: JSON.stringify(payload)
+        })
+        .then(res => res.json())
+        .then(response => {
+            if(response.status === "success") {
+                console.log("시트 기록 성공");
+            } else {
+                alert("기록 전송 중 오류가 발생했습니다. 감독관에게 문의하세요.");
+            }
+        })
+        .catch(err => console.error("네트워크 에러: ", err));
+    }
+
+    function loadAdminData() {
+        const tbody = document.getElementById('ranking-table-body');
+        const loading = document.getElementById('admin-loading');
+       
+        loading.classList.remove('hidden');
+        tbody.innerHTML = "";
+
+        fetch(GAS_WEB_APP_URL)
+        .then(res => res.json())
+        .then(data => {
+            loading.classList.add('hidden');
+            if(data.rankings && data.rankings.length > 0) {
+                data.rankings.forEach((user, idx) => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td><strong>${idx + 1}등</strong></td>
+                        <td>${user.region}</td>
+                        <td>${user.church}</td>
+                        <td>${user.name}</td>
+                        <td><span style="color:var(--primary); font-weight:bold;">${user.score}점</span></td>
+                    `;
+                    tbody.appendChild(row);
+                });
+            } else {
+                tbody.innerHTML = `<tr><td colspan="5" style="color:#6b7280;">아직 제출된 시험지가 없습니다.</td></tr>`;
+            }
+        })
+        .catch(err => {
+            loading.classList.add('hidden');
+            tbody.innerHTML = `<tr><td colspan="5" style="color:red;">데이터를 불러오는 중 오류가 발생했습니다.</td></tr>`;
+        });
+    }
+
+    // [추가] 관리자 데이터 초기화 (구글 시트 비우기) 함수
+    function clearAdminData() {
+        if(!confirm("⚠️ 경고: 정말로 모든 응시 데이터(구글 시트)를 삭제하시겠습니까?\n이 작업은 절대 되돌릴 수 없습니다.")) return;
+       
+        const confirmPw = prompt("안전을 위해 관리자 비밀번호를 한 번 더 입력해 주세요:");
+        if(confirmPw !== ADMIN_PASSWORD) {
+            alert("❌ 비밀번호가 틀려 초기화가 취소되었습니다.");
+            return;
+        }
+
+        const tbody = document.getElementById('ranking-table-body');
+        const loading = document.getElementById('admin-loading');
+        loading.classList.remove('hidden');
+
+        fetch(GAS_WEB_APP_URL, {
+            method: "POST",
+            body: JSON.stringify({ action: "clear" })
+        })
+        .then(res => res.json())
+        .then(response => {
+            loading.classList.add('hidden');
+            if(response.status === "success") {
+                alert("✅ 구글 시트의 모든 데이터가 성공적으로 초기화되었습니다.");
+                loadAdminData();
+            } else {
+                alert("오류 발생: " + response.message);
+            }
+        })
+        .catch(err => {
+            loading.classList.add('hidden');
+            console.error("네트워크 에러: ", err);
+        });
+    }
+</script>
+</body>
+</html>
